@@ -36,7 +36,7 @@ class Downloader:
 		self.total_data = 0
 		self.continue_thread = False
 		self.request = requests.get(self.url, stream=True)
-		print(self.request.headers)
+		# print(self.request.headers)
 
 	def download(self, filename, thread_func=None):
 		if thread_func:
@@ -54,6 +54,8 @@ class Downloader:
 			self.continue_thread = False
 			thread.join()
 		print("Download finished")
+		for thread in threading.enumerate(): 
+			print("Running: ", thread.name)
 
 	def observer(self):
 		while self.continue_thread:
@@ -106,8 +108,8 @@ class YoutubeFrame(tkinter.LabelFrame):
 		print("The link has been expired")
 		return True
 
-	def commit_changes(self, handle):
-		handle.frames[self.index] = self.video_info
+	def commit(self, handle):
+		handle.json_object["playlist"][self.index] = self.video_info
 		handle.commit()
 
 

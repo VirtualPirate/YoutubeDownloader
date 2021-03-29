@@ -55,7 +55,7 @@ class PlayList:
 		def thread_func():
 			while len(_temp_playlist):
 				vid_id = _temp_playlist.pop()
-				print("vid_id: ", vid_id)
+				# print("vid_id: ", vid_id)
 				vid_info = PlayList.get_vid_info(f"https://www.youtube.com/watch?v={vid_id}", self.res)
 
 				dict_lock.acquire()

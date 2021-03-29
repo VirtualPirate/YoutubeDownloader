@@ -16,14 +16,26 @@ def download_file(url, filename):
 			f.write(chunk)
 
 class DownloadThread(threading.Thread):
-	def __init__(self, handle, frame, *args, **kwargs):
+	index = 0
+	def __init__(self, handle, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 		self.handle = handle
-		self.frame = frame
 
 	def run(self):
-		self.frame.download()
-		self.frame.commit(self.handle)
+		try:
+			while DownloadThread.index < len(self.handle.frames):
+				print("thread run")
+				lock.acquire()
+				self.frame = self.handle.frames[DownloadThread.index]
+				DownloadThread.index += 1
+				lock.release()
+				self.frame.download()
+				self.frame.commit(self.handle)
+				print("thread finish")
+		except IndexError:
+			lock.release()
+			print("DownloadThread returned")
+			return
 
 class YoutubeHandler:
 	def __init__(self, json_file):
@@ -31,7 +43,6 @@ class YoutubeHandler:
 
 		with open(self.json_file, 'r') as file:
 			self.json_object = json.load(file)
-		print("json object:", self.json_object)
 		self.frames = []
 
 	def download_thumbnails(self):
@@ -63,7 +74,7 @@ class YoutubeHandler:
 	def commit(self):
 		lock.acquire()
 		with open(self.json_file, 'w') as file:
-			json.dump(file, self.json_object)
+			json.dump(self.json_object, file, indent=1)
 		lock.release()
 
 	def inflate(self, frame):
@@ -71,22 +82,31 @@ class YoutubeHandler:
 		for each_vid in self.json_object["playlist"]:
 			each_frame = YoutubeFrame.YoutubeFrame(frame, each_vid, index, bg="#f0fff0")
 			self.frames.append(each_frame)
-			print('self.frames = ', self.frames)
+			# print('self.frames = ', self.frames)
 			each_frame.pack(anchor=tkinter.W, fill=tkinter.X)
 			index+=1
 
 	def download(self):
-		index = 0
-		while index < len(self.frames)-1:
-			download_threads = []
-			for _ in range(2):
-				t = DownloadThread(self, self.frames[index])
-				t.start()
-				download_threads.append(t)
-				index += 1
+		download_threads = []
+		for _ in range(2):
+			t = DownloadThread(self)
+			t.start()
+			download_threads.append(t)
 
-			for each_thread in download_threads:
-				each_thread.join()
+		for each_thread in download_threads:
+			each_thread.join()
+	# def download(self):
+	# 	index = 0
+	# 	while index < len(self.frames)-1:
+	# 		download_threads = []
+	# 		for _ in range(2):
+	# 			t = DownloadThread(self, self.frames[index])
+	# 			t.start()
+	# 			download_threads.append(t)
+	# 			index += 1
+
+	# 		for each_thread in download_threads:
+	# 			each_thread.join()
 	# def download(self)
 	# 	for first, second in pairwise(self.frames):
 	# 		first_thread = threading.Thread(target=first.download)
