@@ -35,7 +35,7 @@ class PlayList:
 
 		vid_stream = vid.streams.get_by_resolution(res)
 		if not vid_stream:
-			vid_stream = vid.stream.first()
+			vid_stream = vid.streams.first()
 
 		return {"title": vid.title,\
 			"thumbnail_url": vid.thumbnail_url.replace(os.path.basename(vid.thumbnail_url), "default.jpg"),\
