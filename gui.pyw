@@ -12,6 +12,8 @@ import YoutubeFrame
 from tkscrolledframe import ScrolledFrame
 from tkinter.filedialog import askdirectory
 
+import os.path
+
 
 def create_file(file_name, string=''):
     try:
@@ -27,6 +29,10 @@ def create_dir(dir_):
     except FileExistsError:
         pass
 
+def select_download_location():
+    location = askdirectory()
+    with open("download_location.txt", "w") as download_location:
+        download_location.write(location)
 
 class GUI:
 
@@ -66,7 +72,7 @@ class GUI:
             self.upper_frame, text="Download", width=15, command=lambda: self.download_button_event_thread())
 
         self.change_location = tk.Button(
-            self.upper_frame, text="Select Location", width=20)
+            self.upper_frame, text="Select Location", width=20, command=select_download_location)
 
         # self.download_thread.start
 
@@ -124,6 +130,11 @@ class GUI:
         playlist_match = re.search(
             InfoParser.PlayList.playlist_regex, entry_input)
         video_match = re.search(InfoParser.PlayList.video_regex, entry_input)
+
+        if os.path.isfile("download_location.txt"):
+            with open("download_location.txt") as location:
+                os.chdir(location.read())
+
         if playlist_match:
             # -------------------------------------------------------
             # This section of code exports json data of the playlist
@@ -167,12 +178,10 @@ class GUI:
                 info["thumbnail_url"], f".thumbs/{video_id}.jpg")
 
             # Creates a directory with the name of the playlist id
-            create_dir("downloads")
 
             youtube_frame = YoutubeFrame.YoutubeFrame(
                 self.lower_frame, info, 0)
             youtube_frame.pack(anchor=tkinter.W, fill=tkinter.X)
-            os.chdir("downloads")
             youtube_frame.download()
 
             # ----------------------------------------------------------
