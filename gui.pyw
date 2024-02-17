@@ -100,8 +100,13 @@ class GUI:
 
         self.lower_frame = self.scrollbar.display_widget(
             tkinter.Frame, fit_width=True)
-
+        
+        self.root.protocol("WM_DELETE_WINDOW", self.close)
         self.root.mainloop()
+
+    def close(self):
+        self.root.destroy()
+        exit()
 
     def show_menu(self, e):
         w = e.widget
